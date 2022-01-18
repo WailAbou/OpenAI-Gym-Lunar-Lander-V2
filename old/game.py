@@ -18,6 +18,7 @@ class Game:
             total_reward, steps = self.play_one(self.env, epsilon, gamma)
             self.total_rewards[episode] = total_reward
             if episode % 100 == 0 and episode != 0: print(f"episode: {episode}", f"steps: {steps}", f"total reward: {total_reward}", f"epsilon: {epsilon}")
+        self.env.close()
 
     def play_one(self, env, epsilon, gamma):
         observation = env.reset()
@@ -25,7 +26,8 @@ class Game:
         total_reward = 0
         iters = 0
         while not done:
-            # if self.test_mode: self.env.render()
+            if self.test_mode:
+                self.env.render()
             action = self.model.sample_action(observation, epsilon)
             prev_observation = observation
             observation, reward, done, info = env.step(action)
