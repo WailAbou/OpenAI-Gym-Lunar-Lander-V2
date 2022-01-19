@@ -2,21 +2,21 @@ import numpy as np
 
 
 class Memory:
-    def __init__(self, env, test_mode, size=1000) -> None:
-        self.observation_samples = self.run_episodes(size, env) if test_mode else None 
+    def __init__(self, env, train_mode, size=1000) -> None:
+        self.state_samples = self.run_episodes(size, env) if train_mode else None
 
     @property
     def get(self):
-        return self.observation_samples
+        return self.state_samples
 
     def run_episodes(self, episodes, env):
-        observation_samples = []
+        state_samples = []
         for episode in range(episodes):
-            observation = env.reset()
-            observation_samples.append(observation)
+            state = env.reset()
+            state_samples.append(state)
             done = False
             while not done:
                 action = env.action_space.sample()
-                observation, reward, done, info = env.step(action)
-                observation_samples.append(observation)
-        return np.array(observation_samples)
+                state, reward, done, info = env.step(action)
+                state_samples.append(state)
+        return np.array(state_samples)

@@ -7,14 +7,17 @@ from tensorflow.keras.initializers import LecunUniform
 from tensorflow.keras.activations import relu, tanh, linear
 from tensorflow.keras.losses import mse
 from tensorflow.keras.models import load_model
+from joblib import dump, load
 
 
 class Model:
-    def __init__(self, env, observation_samples, models=None):
+    def __init__(self, env, state_samples, train_mode):
         self.env = env
-        self.scaler = StandardScaler()
-        self.scaler.fit(observation_samples)
-        self.models = [self.create_nn_model() for _ in range(env.action_space.n)]
+        self.train_mode = train_mode
+        if self.train_mode:
+            self.scaler = StandardScaler()
+            self.scaler.fit(state_samples)
+            self.models = [self.create_nn_model() for _ in range(self.env.action_space.n)]
 
     def create_nn_model(self):
         model = Sequential()
@@ -33,11 +36,12 @@ class Model:
         self.models[a].fit(np.array(X), np.array([G]), epochs=1, verbose=0)
 
     def sample_action(self, s, eps):
-        return self.env.action_space.sample() if np.random.random() < eps else np.argmax(self.predict(s))
+        return self.env.action_space.sample() if np.random.random() < eps and self.train_mode else np.argmax(self.predict(s))
 
     def save(self):
+        dump(self.scaler, '../saves/scaler.joblib')
         [model.save(f"../saves/model{i}.h5") for i, model in enumerate(self.models)]
 
     def load(self):
-        for i in range(len(self.models)):
-            self.models[i] = load_model(f"../saves/model{i}.h5")
+        self.scaler = load('../saves/scaler.joblib')
+        self.models = [load_model(f"../saves/model{i}.h5") for i in range(self.env.action_space.n)]

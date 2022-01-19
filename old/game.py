@@ -2,16 +2,19 @@ from memory import Memory
 from model import Model
 from tqdm import tqdm
 import numpy as np
+from gym import wrappers
+
 
 class Game:
-    def __init__(self, env, test_mode=False) -> None:
+    def __init__(self, env, train_mode=True) -> None:
         self.env = env
-        self.test_mode = test_mode
+        self.train_mode = train_mode
         self.total_rewards = None
-        self.memory = Memory(self.env, self.test_mode)
-        self.model = Model(self.env, self.memory.get)
+        self.memory = Memory(self.env, self.train_mode, self.train_mode)
+        self.model = Model(self.env, self.memory.get, self.train_mode)
 
     def start(self, episodes, gamma=0.99):
+        if self.train_mode: self.env = wrappers.Monitor(self.env, '../monitor', video_callable=lambda episode: episode == (episodes - 1))
         self.total_rewards = np.empty(episodes)
         for episode in tqdm(range(episodes)):
             epsilon = 1.0 / np.sqrt(episode + 1)
@@ -21,24 +24,23 @@ class Game:
         self.env.close()
 
     def play_one(self, env, epsilon, gamma):
-        observation = env.reset()
+        state = env.reset()
         done = False
         total_reward = 0
         iters = 0
         while not done:
-            if self.test_mode:
-                self.env.render()
-            action = self.model.sample_action(observation, epsilon)
-            prev_observation = observation
-            observation, reward, done, info = env.step(action)
-            total_reward += self.td_learning(observation, prev_observation, action, reward, gamma)
+            action = self.model.sample_action(state, epsilon)
+            previous_state = state
+            state, reward, done, info = env.step(action)
+            total_reward += self.td_learning(state, previous_state, action, reward, gamma)
             iters += 1
+        if not self.train_mode: print(f'Total reward: {total_reward}')
         return total_reward, iters
 
-    def td_learning(self, observation, prev_observation, action, reward, gamma):
-        next = self.model.predict(observation)
+    def td_learning(self, state, previous_state, action, reward, gamma):
+        next = self.model.predict(state)
         G = reward + gamma * np.max(next)
-        if not self.test_mode: self.model.update(prev_observation, action, G)
+        self.model.update(previous_state, action, G)
         return reward
 
     def save(self):
