@@ -6,20 +6,16 @@ from tqdm import trange
 
 
 class Game:
-    def __init__(self, agent: Agent, load: bool) -> None:
+    def __init__(self, agent: Agent) -> None:
         self.env = gym_make('LunarLander-v2')
         self.total_rewards = []
         self.agent = agent
-        if load:
-            self.agent.policy_network.load()
-            self.agent.target_network.load()
 
     def play(self, epsiodes: int, max_steps: int, train_freq: int, copy_freq: int) -> None:
         for episode in trange(epsiodes):
             total_reward = self.play_one(episode, max_steps, train_freq, copy_freq)
             self.total_rewards.append(total_reward)
             self.agent.policy.decay(episode)
-            # self.display_stats()
         self.env.close()
 
     def play_one(self, episode: int, max_steps: int, train_freq: int, copy_freq: int) -> float:
@@ -41,8 +37,12 @@ class Game:
         return total_reward
 
     def save(self):
-        self.agent.policy_network.save()
-        self.agent.target_network.save()
+        self.agent.policy_network.save('policy_network')
+        self.agent.target_network.save('target_network')
+
+    def load(self):
+        self.agent.policy_network.load('policy_network')
+        self.agent.target_network.load('target_network')
 
     def plot(self) -> None:
         plt.plot(self.total_rewards)

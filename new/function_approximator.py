@@ -18,7 +18,7 @@ print(f'GPU acceleration enabled = {gpu_amount > 0}')
 class FunctionApproximator:
     def __init__(self, learning_rate: float = 0.001) -> None:
         self.model = Sequential()
-        self.model.add(Dense(input_dim=8, units=1))
+        self.model.add(Dense(1, input_dim=8))
         self.model.add(Dense(32))
         self.model.add(Dense(64))
         self.model.add(Dense(4))
@@ -27,11 +27,11 @@ class FunctionApproximator:
     def q_values(self, states: List[Any]) -> Any:
         return self.model.predict(np.array([states]))[0]
 
-    def save(self) -> None:
-        self.model.save('../saves_new/model.h5')
+    def save(self, file_name: str) -> None:
+        self.model.save(f'saves_new/{file_name}.h5')
 
-    def load(self) -> None:
-        self.model = load_model('../saves_new/model.h5')
+    def load(self, file_name: str) -> None:
+        self.model = load_model(f'saves_new/{file_name}.h5')
 
     def train(self, data, targets) -> None:
         self.model.fit(np.array(data), np.array(targets), verbose=0)
