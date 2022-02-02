@@ -2,7 +2,6 @@ from memory import Memory
 from model import Model
 from tqdm import tqdm
 import numpy as np
-from gym import wrappers
 
 
 class Game:
@@ -14,7 +13,6 @@ class Game:
         self.model = Model(self.env, self.memory.get, self.train_mode)
 
     def start(self, episodes, gamma=0.99):
-        if self.train_mode: self.env = wrappers.Monitor(self.env, '../monitor', video_callable=lambda episode: episode == (episodes - 1))
         self.total_rewards = np.empty(episodes)
         for episode in tqdm(range(episodes)):
             epsilon = 1.0 / np.sqrt(episode + 1)
@@ -45,7 +43,7 @@ class Game:
 
     def save(self):
         self.model.save()
-        textfile = open("../saves/totalrewards.txt", 'w')
+        textfile = open("../saves_old/totalrewards.txt", 'w')
         [textfile.write(str(total_reward) + "\n") for total_reward in self.total_rewards]
         textfile.close()
 

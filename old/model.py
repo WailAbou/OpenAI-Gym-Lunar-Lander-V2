@@ -39,9 +39,9 @@ class Model:
         return self.env.action_space.sample() if np.random.random() < eps and self.train_mode else np.argmax(self.predict(s))
 
     def save(self):
-        dump(self.scaler, '../saves/scaler.joblib')
-        [model.save(f"../saves/model{i}.h5") for i, model in enumerate(self.models)]
+        dump(self.scaler, '../saves_old/scaler.joblib')
+        [model.save(f"../saves_old/model{i}.h5") for i, model in enumerate(self.models)]
 
     def load(self):
-        self.scaler = load('../saves/scaler.joblib')
-        self.models = [load_model(f"../saves/model{i}.h5") for i in range(self.env.action_space.n)]
+        self.scaler = load('../saves_old/scaler.joblib')
+        self.models = [load_model(f"../saves_old/model{i}.h5") for i in range(self.env.action_space.n)]
